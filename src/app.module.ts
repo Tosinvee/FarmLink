@@ -7,6 +7,9 @@ import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import environmentValidate from './config/environment.validate';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { MailModule } from './mail/mail.module';
 
 const ENV = process.env.NODE_ENV
 
@@ -32,7 +35,13 @@ const ENV = process.env.NODE_ENV
         autoLoadEntities: configService.get('database.autoLoadEntities'),
         database:configService.get('database.name'),  
       })
-    })
+    }),
+
+    UserModule,
+
+    AuthModule,
+
+    MailModule
   ],
   controllers: [AppController],
   providers: [AppService],
