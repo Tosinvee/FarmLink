@@ -1,4 +1,6 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -123,7 +125,20 @@ export class AuthService {
             message:'password reset successfully'
         }
     }
-         
+
+    async assignAdmin(userId:string): Promise<Partial<User>>{
+        await this.userRepository.update(userId, {role:'ADMIN'})
+        const updatedUser = await this.userRepository.findOne({
+            where:{id:userId},
+        })
+
+        if(updatedUser){
+            const {password, verificationCode, emailVerified, ...result} = updatedUser;
+            return result;
+        }
+        throw new BadRequestException('user not found')
+    }
+    
     }
 
 

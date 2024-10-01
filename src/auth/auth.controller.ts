@@ -1,8 +1,9 @@
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Req, Request, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpDto } from './dtos/signup.dto';
 import { LocalAuthGuard } from './guides/local.guard';
+
 
 @Controller('auth')
 export class AuthController {
@@ -39,4 +40,12 @@ export class AuthController {
     async resetPassword(@Body() dto:{email:string, password:string}){
         return this.authService.resetpassword(dto.email, dto.password)
     }
+
+
+    @Post('assign-admin')
+        async assignAdmin(@Req() req:Request){
+            const userId = (req as any).user.id;
+            return this.authService.assignAdmin(userId)
+        }
 }
+ 
