@@ -13,9 +13,30 @@ export class AuthController {
         return this.authService.signUp(signUpDto)
     }
 
+    @Post('verify-email')
+        async verifyEmail(@Body() dto: {email:string , otp:string}){
+           return this.authService.verifyEmail(dto.email, dto.otp) 
+        }
+
+
     @Post('login')
     @UseGuards(LocalAuthGuard)
     async login(@Request() req:any){
         return this.authService.login(req.user)
+    }
+
+    @Post('forgot-password')
+    async forgotPassword(@Body() dto:{email:string}){
+        return this.authService.forgotPassword(dto.email)
+    }
+
+    @Post('verify-otp')
+    async verifyPassword(@Body() dto:{email:string, otp:string}){
+        return this.authService.verifyOtp(dto.email, dto.otp)
+    }
+
+    @Post('reset-password')
+    async resetPassword(@Body() dto:{email:string, password:string}){
+        return this.authService.resetpassword(dto.email, dto.password)
     }
 }

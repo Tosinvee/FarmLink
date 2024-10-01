@@ -43,6 +43,6 @@ export class User{
     @Column({default:'USER'})
     role:string;
 
-    @Column({default:true})
+    @Column({nullable:true})
     createdAt:Date;
 }

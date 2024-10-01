@@ -8,9 +8,11 @@ import { UserModule } from 'src/user/user.module';
 import { JwtModule } from '@nestjs/jwt'; 
 import { MailModule } from 'src/mail/mail.module';
 import jwtConfig from './jwt.config';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
 
 @Module({
-  providers: [AuthService],
+  providers: [AuthService,JwtStrategy,LocalStrategy],
   controllers: [AuthController],
   imports:[TypeOrmModule.forFeature([User]),
   forwardRef(()=> UserModule),

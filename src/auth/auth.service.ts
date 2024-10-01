@@ -60,6 +60,20 @@ export class AuthService {
         return await this.sendOtp(user.email)
     }
 
+    async verifyEmail(email:string, otp:string):Promise<{message:string, access_token:string}>{
+        const user = await this.userService.findUserByEmail(email)
+        if(user.verificationCode === otp && this.mailService.verifyOtpTime(user.createdAt)){
+            await this.userRepository.update({email},{emailVerified:true})
+
+            const payload = {email:user.email, sub:user.id, roles:[user.role]}
+            return {
+                message:"Email verified successfully",
+                access_token:this.jwtService.sign(payload)
+            }
+        }
+        throw new BadRequestException('Invalid otp')
+    }
+
     async validateUser(email:string, password:string) : Promise<Users>{
         const user = await this.userService.findUserByEmail(email)
 
@@ -78,6 +92,38 @@ export class AuthService {
             access_token:this.jwtService.sign(payload)
         }
     }
+
+    async forgotPassword(email:string): Promise<{message:string}>{
+        const user =  await this.userService.findUserByEmail(email)
+        if(!user){
+            throw new BadRequestException('User does not exit')
+        }
+        return this.sendOtp(user.email)
+    }
+
+    async verifyOtp(email:string, otp:string):Promise<{message:string}>{
+        const user = await this.userService.findUserByEmail(email)
+        if(!user || user.verificationCode !== otp){
+            throw new BadRequestException('Invalid email or Otp')
+        }
+        await this.userRepository.update({email}, {verificationCode:null})
+        return{
+            message:'Otp verified sucessfully, you can now set your password'
+        }
+    }
+
+    async resetpassword(email:string, newPassword:string):Promise<{message:string}>{
+        const user = await this.userService.findUserByEmail(email)
+        if(!user){
+            throw new BadRequestException('User does not exist')
+        }
+        const hashedPassword = await bcrypt.hash(newPassword, 10)
+        await this.userRepository.update({email}, {password:hashedPassword})
+        return{
+            message:'password reset successfully'
+        }
+    }
+         
     }
 
 
