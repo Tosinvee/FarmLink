@@ -138,6 +138,28 @@ export class AuthService {
         }
         throw new BadRequestException('user not found')
     }
+
+//     async assignAdmin(userId: string): Promise<Partial<User>> {
+//         const userExists = await this.userRepository.findOne({
+//             where: { id: userId },
+//         })
+//         if (!userExists) {
+//             throw new BadRequestException('User not found');
+//         }
+//         await this.userRepository.update(userId, { role: 'ADMIN' });
+//         const updatedUser = await this.userRepository.findOne({
+//             where: { id: userId },
+//         });
+
+//         if (updatedUser) {
+//             // Exclude sensitive fields from the response
+//             const { password, verificationCode, emailVerified, ...result } = updatedUser;
+//             return result;
+//         }
+//         throw new BadRequestException('Failed to assign admin role');
+//     }
+// }
+
     
     }
 

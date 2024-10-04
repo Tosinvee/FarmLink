@@ -7,17 +7,27 @@ import { User } from 'src/user/user.entity';
 import { UserModule } from 'src/user/user.module';
 import { JwtModule } from '@nestjs/jwt'; 
 import { MailModule } from 'src/mail/mail.module';
-import jwtConfig from './jwt.config';
+//import jwtConfig from './jwt.config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
-  providers: [AuthService,JwtStrategy,LocalStrategy],
-  controllers: [AuthController],
   imports:[TypeOrmModule.forFeature([User]),
   forwardRef(()=> UserModule),
-  JwtModule.registerAsync(jwtConfig.asProvider()),
+  JwtModule.registerAsync({
+    inject: [ConfigService],
+    useFactory: (configService: ConfigService) => ({
+      secret: configService.get<string>('jwt.secret') || 'ilovejesus', 
+      signOptions: { expiresIn: configService.get<string>('jwt.signOptions.expiresIn') || 3600 }, 
+    }),
+  }),
+
   MailModule
-]
+],
+  providers: [AuthService,JwtStrategy,LocalStrategy],
+  controllers: [AuthController],
+  exports: [AuthService, JwtStrategy],
+  
 })
 export class AuthModule {}

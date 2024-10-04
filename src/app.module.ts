@@ -10,6 +10,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { MailModule } from './mail/mail.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/guides/jwt.guard';
+import { RolesGuard } from './user/roles.guard';
 
 const ENV = process.env.NODE_ENV
 
@@ -44,6 +47,15 @@ const ENV = process.env.NODE_ENV
     MailModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,
+    {
+      provide:APP_GUARD,
+      useClass:JwtAuthGuard
+    },
+    {
+      provide:APP_GUARD,
+      useClass:RolesGuard
+    }
+  ],
 })
 export class AppModule {}
