@@ -5,8 +5,7 @@ import { SignUpDto } from './dtos/signup.dto';
 import { LocalAuthGuard } from './guides/local.guard';
 import { Public } from 'src/common/decorators/public.decorator';
 import { JwtAuthGuard } from './guides/jwt.guard';
-import { AuthGuard } from '@nestjs/passport';
-//import { AuthGuard } from '@nestjs/passport';
+
 
 
 @Controller('auth')
