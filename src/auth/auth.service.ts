@@ -43,9 +43,8 @@ export class AuthService {
   }
 
   generateCode(): string {
-    return crypto.randomInt(0, 1_000_000).toString().padStart(6, '0');
+    return Math.floor(100000 + Math.random() * 900000).toString();
   }
-
   async signup(body: SignupDto) {
     const existingUser = await this.userService.findByEmail(body.email);
     if (existingUser) {
@@ -64,7 +63,11 @@ export class AuthService {
 
     const ttl = Number(process.env.SIGNUP_TTL) || 600;
 
-    await this.redisService.set(`signup:${code}`, JSON.stringify(signupData), ttl);
+    await this.redisService.set(
+      `signup:${code}`,
+      JSON.stringify(signupData),
+      ttl,
+    );
     await this.redisService.set(`signup:email:${body.email}`, code, ttl);
 
     try {

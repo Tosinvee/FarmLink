@@ -65,8 +65,6 @@ model Farmer {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   displayName String
   description String?
-  location    String
-  phone       String?
   isVerified  Boolean  @default(false)
   rating      Float    @default(0)
   createdAt   DateTime @default(now())

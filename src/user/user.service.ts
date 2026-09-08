@@ -37,8 +37,6 @@ export class UserService {
           farmer: {
             create: {
               displayName: data.firstName,
-              location: '',
-              phone: '',
             },
           },
         },
