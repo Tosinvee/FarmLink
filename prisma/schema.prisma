@@ -22,6 +22,13 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum PaymentStatus{
+  PENDING
+  SUCCESSFUL
+  FAILED
+  REFUNDED
+}
+
 enum DeliveryStatus {
   PENDING
   DISPATCHED
@@ -43,10 +50,11 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  farmer    Farmer?
-  addresses Address[]
-  cart      Cart?
-  orders    Order[]
+  farmer        Farmer?
+  addresses     Address[]
+  cart          Cart?
+  orders        Order[]
+  refreshTokens RefreshToken[]
 
   @@map("users")
 }
@@ -77,7 +85,11 @@ model Farm {
   farmer      Farmer   @relation(fields: [farmerId], references: [id], onDelete: Cascade)
   name        String
   description String?
-  location    String
+  country     String
+  state       String
+  city        String
+  longitude   Float?
+  latitude    Float?
   imageUrl    String?
   acreage     Float?
   createdAt   DateTime @default(now())
@@ -123,6 +135,8 @@ model Address {
   city       String
   state      String
   country    String   @default("NG")
+  latitude   Float?
+  longitude  Float?
   postalCode String?
   isDefault  Boolean  @default(false)
   createdAt  DateTime @default(now())
@@ -174,6 +188,7 @@ model Order {
 
   items    OrderItem[]
   delivery Delivery?
+  payment  Payment?
 
   @@index([userId])
   @@map("orders")
@@ -195,6 +210,20 @@ model OrderItem {
   @@map("order_items")
 }
 
+model Payment{
+  id                String         @id @default(uuid())
+  orderId           String         @unique
+  order             Order          @relation(fields: [orderId], references: [id], onDelete:Cascade)
+  reference        String          @unique
+  amount           Decimal         @db.Decimal(12, 2)
+  status           PaymentStatus   @default(PENDING)
+  paidAt           DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@map("payments")
+}
+
 model Delivery {
   id                String          @id @default(uuid())
   orderId           String          @unique
@@ -208,4 +237,18 @@ model Delivery {
   updatedAt         DateTime        @updatedAt
 
   @@map("deliveries")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, revoked])
+  @@map("refresh_tokens")
 }
