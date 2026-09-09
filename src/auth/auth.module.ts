@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -23,10 +23,11 @@ import { MailModule } from '../mail/mail.module';
         },
       }),
     }),
-    UserModule,
+    forwardRef(() => UserModule),
     MailModule,
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy],
   controllers: [AuthController],
+  exports: [JwtStrategy],
 })
 export class AuthModule {}

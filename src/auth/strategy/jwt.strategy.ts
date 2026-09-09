@@ -3,9 +3,8 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { User } from '@prisma/client';
 import { TokenPayload } from '../interface/token.interface';
-import { UserService } from '../../user/user.service';
+import { SafeUser, UserService } from '../../user/user.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -20,7 +19,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: TokenPayload): Promise<User> {
+  async validate(payload: TokenPayload): Promise<SafeUser> {
     const user = await this.userService.findById(payload.userId);
     if (!user) {
       throw new UnauthorizedException('User no longer exists');

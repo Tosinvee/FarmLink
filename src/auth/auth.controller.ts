@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { User } from '@prisma/client';
+import { SafeUser } from '../user/user.service';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
@@ -41,9 +42,7 @@ export class AuthController {
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
-  getProfile(@CurrentUser() user: User) {
-    const safeUser = Object.assign({}, user);
-    delete safeUser.password;
-    return safeUser;
+  getProfile(@CurrentUser() user: SafeUser) {
+    return user;
   }
 }

@@ -55,7 +55,7 @@ export class AuthService {
     const code = this.generateCode();
 
     const signupData = {
-      email: body.email,
+      code,
       firstName: body.firstName,
       passwordHash,
       role: body.role ?? 'CONSUMER',
@@ -64,12 +64,10 @@ export class AuthService {
     const ttl = Number(process.env.SIGNUP_TTL) || 600;
 
     await this.redisService.set(
-      `signup:${code}`,
+      `signup:${body.email}`,
       JSON.stringify(signupData),
       ttl,
     );
-    await this.redisService.set(`signup:email:${body.email}`, code, ttl);
-
     try {
       await this.mailService.sendVerificationCode(
         body.email,
@@ -81,8 +79,7 @@ export class AuthService {
         message: 'Please check your email to complete registration',
       };
     } catch (e) {
-      await this.redisService.del(`signup:${code}`);
-      await this.redisService.del(`signup:email:${body.email}`);
+      await this.redisService.del(`signup:${body.email}`);
       throw new InternalServerErrorException(
         `An error occurred sending email: ${e.message}`,
       );
@@ -90,20 +87,20 @@ export class AuthService {
   }
 
   async verifyEmail(body: VerifyEmailDto) {
-    const raw = await this.redisService.get(`signup:${body.code}`);
+    const raw = await this.redisService.get(`signup:${body.email}`);
     if (!raw) {
       throw new BadRequestException('Invalid or expired code');
     }
 
     const pending = JSON.parse(raw) as {
-      email: string;
+      code: string;
       firstName: string;
       passwordHash: string;
       role: string;
     };
 
-    if (pending.email !== body.email) {
-      throw new BadRequestException('Code does not match this email');
+    if (pending.code !== body.code) {
+      throw new BadRequestException('Invalid or expired code');
     }
 
     const existingUser = await this.userService.findByEmail(body.email);
@@ -112,14 +109,13 @@ export class AuthService {
     }
 
     await this.userService.createUser({
-      email: pending.email,
+      email: body.email,
       firstName: pending.firstName,
       passwordHash: pending.passwordHash,
       role: pending.role as 'CONSUMER' | 'FARMER',
     });
 
-    await this.redisService.del(`signup:${body.code}`);
-    await this.redisService.del(`signup:email:${body.email}`);
+    await this.redisService.del(`signup:${body.email}`);
 
     return { success: true, message: 'Email verified, you can now log in' };
   }
