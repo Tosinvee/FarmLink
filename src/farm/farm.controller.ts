@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
@@ -15,14 +16,15 @@ import { SafeUser } from '../user/user.service';
 import { FarmService } from './farm.service';
 import { CreateFarmDto } from './dto/create-farm.dto';
 import { UpdateFarmDto } from './dto/update-farm.dto';
+import { SearchFarmsDto } from './dto/search-farms.dto';
 
 @Controller('farms')
 export class FarmController {
   constructor(private readonly farmService: FarmService) {}
 
   @Get()
-  findAll() {
-    return this.farmService.findAll();
+  findAll(@Query() query: SearchFarmsDto) {
+    return this.farmService.findAll(query);
   }
 
   @Get(':id')

@@ -5,10 +5,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { SafeUser } from '../user/user.service';
 import { CreateFarmDto } from './dto/create-farm.dto';
 import { UpdateFarmDto } from './dto/update-farm.dto';
+import { SearchFarmsDto } from './dto/search-farms.dto';
 
 @Injectable()
 export class FarmService {
@@ -44,8 +46,27 @@ export class FarmService {
     });
   }
 
-  findAll() {
+  async findAll(query: SearchFarmsDto) {
+    const where: Prisma.FarmWhereInput = {};
+
+    if (query.search) {
+      where.OR = [
+        { name: { contains: query.search, mode: 'insensitive' } },
+        { description: { contains: query.search, mode: 'insensitive' } },
+      ];
+    }
+    if (query.country) {
+      where.country = { contains: query.country, mode: 'insensitive' };
+    }
+    if (query.state) {
+      where.state = { contains: query.state, mode: 'insensitive' };
+    }
+    if (query.city) {
+      where.city = { contains: query.city, mode: 'insensitive' };
+    }
+
     return this.prisma.farm.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
     });
   }

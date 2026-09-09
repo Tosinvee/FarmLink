@@ -115,16 +115,29 @@ model Review {
   @@map("reviews")
 }
 
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+
+  @@map("categories")
+}
+
 model Product {
   id          String   @id @default(uuid())
   farmerId    String
   farmId      String?
+  categoryId  String
   farmer      Farmer   @relation(fields: [farmerId], references: [id], onDelete: Cascade)
   farm        Farm?    @relation(fields: [farmId], references: [id], onDelete: SetNull)
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   name        String
   description String?
-  category    String   @default("PRODUCE")
-  price       Decimal  @db.Decimal(12, 2)
+  price       Int
   quantity    Int      @default(0)
   unit        String   @default("kg")
   imageUrl    String?
@@ -136,7 +149,7 @@ model Product {
   orderItems OrderItem[]
 
   @@index([farmerId])
-  @@index([category])
+  @@index([categoryId])
   @@map("products")
 }
 
@@ -195,9 +208,9 @@ model Order {
   user        User        @relation(fields: [userId], references: [id], onDelete: Restrict)
   address     Address?    @relation(fields: [addressId], references: [id], onDelete: SetNull)
   status      OrderStatus @default(PENDING)
-  subtotal    Decimal     @db.Decimal(12, 2)
-  deliveryFee Decimal     @db.Decimal(12, 2) @default(0)
-  total       Decimal     @db.Decimal(12, 2)
+  subtotal    Int
+  deliveryFee Int      @default(0)
+  total       Int
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
@@ -217,9 +230,9 @@ model OrderItem {
   product      Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
   productName  String
   productImage String?
-  unitPrice    Decimal  @db.Decimal(12, 2)
+  unitPrice    Int
   quantity     Int
-  totalPrice   Decimal  @db.Decimal(12, 2)
+  totalPrice   Int
 
   @@index([orderId])
   @@map("order_items")
@@ -230,7 +243,7 @@ model Payment{
   orderId           String         @unique
   order             Order          @relation(fields: [orderId], references: [id], onDelete:Cascade)
   reference        String          @unique
-  amount           Decimal         @db.Decimal(12, 2)
+  amount           Int
   status           PaymentStatus   @default(PENDING)
   paidAt           DateTime?
   createdAt        DateTime        @default(now())

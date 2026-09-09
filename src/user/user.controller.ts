@@ -11,7 +11,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
-import { UserService } from './user.service';
+import { CurrentUser } from '../auth/current-user';
+import { SafeUser, UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @UseGuards(JwtAuthGuard)
@@ -24,6 +25,11 @@ export class UserController {
     return this.userService.findAll();
   }
 
+  @Get('me')
+  getMe(@CurrentUser() user: SafeUser) {
+    return user;
+  }
+
   @Get(':id')
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.userService.findById(id);
@@ -33,12 +39,14 @@ export class UserController {
     return user;
   }
 
-  @Patch(':id')
-  update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateUserDto,
-  ) {
-    return this.userService.update(id, dto);
+  @Patch('me')
+  update(@CurrentUser() user: SafeUser, @Body() dto: UpdateUserDto) {
+    return this.userService.update(user.id, dto);
+  }
+
+  @Delete('me')
+  removeSelf(@CurrentUser() user: SafeUser) {
+    return this.userService.softDelete(user.id);
   }
 
   @Delete(':id')
