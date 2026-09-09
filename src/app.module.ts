@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { AuthModule } from './auth/auth.module';
 import { FarmModule } from './farm/farm.module';
+import { FarmerModule } from './farmer/farmer.module';
 import { CategoryModule } from './category/category.module';
 import { ProductsModule } from './products/products.module';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
@@ -25,6 +26,7 @@ const ENV = process.env.NODE_ENV;
     RedisModule,
     AuthModule,
     FarmModule,
+    FarmerModule,
     CategoryModule,
     ProductsModule,
   ],
