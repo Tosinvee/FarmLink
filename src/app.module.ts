@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { AuthModule } from './auth/auth.module';
+import { FarmModule } from './farm/farm.module';
 
 const ENV = process.env.NODE_ENV;
 
@@ -18,6 +19,7 @@ const ENV = process.env.NODE_ENV;
     PrismaModule,
     RedisModule,
     AuthModule,
+    FarmModule,
   ],
   controllers: [AppController],
   providers: [AppService],
