@@ -14,6 +14,7 @@ enum Role {
 }
 
 enum OrderStatus {
+  PENDING_PAYMENT
   PENDING
   CONFIRMED
   PROCESSING
@@ -24,6 +25,7 @@ enum OrderStatus {
 
 enum PaymentStatus{
   PENDING
+  PROCESSING
   SUCCESSFUL
   FAILED
   REFUNDED
@@ -36,6 +38,13 @@ enum DeliveryStatus {
   DELIVERED
   FAILED
   RETURNED
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
 }
 
 model User {
@@ -72,9 +81,13 @@ model Farmer {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  farm      Farm?
-  products  Product[]
-  reviews   Review[]
+  farm          Farm?
+  products      Product[]
+  reviews       Review[]
+  orders        Order[]
+  earnings      FarmerEarning[]
+  payouts       FarmerPayout[]
+  payoutAccount FarmerPayoutAccount?
 
   @@index([userId])
   @@map("farmers")
@@ -204,10 +217,12 @@ model CartItem {
 model Order {
   id          String      @id @default(uuid())
   userId      String
+  farmerId    String
   addressId   String?
   user        User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  farmer      Farmer      @relation(fields: [farmerId], references: [id], onDelete: Restrict)
   address     Address?    @relation(fields: [addressId], references: [id], onDelete: SetNull)
-  status      OrderStatus @default(PENDING)
+  status      OrderStatus @default(PENDING_PAYMENT)
   subtotal    Int
   deliveryFee Int      @default(0)
   total       Int
@@ -217,8 +232,10 @@ model Order {
   items    OrderItem[]
   delivery Delivery?
   payment  Payment?
+  earnings FarmerEarning[]
 
   @@index([userId])
+  @@index([farmerId])
   @@map("orders")
 }
 
@@ -242,12 +259,17 @@ model Payment{
   id                String         @id @default(uuid())
   orderId           String         @unique
   order             Order          @relation(fields: [orderId], references: [id], onDelete:Cascade)
-  reference        String          @unique
-  amount           Int
-  status           PaymentStatus   @default(PENDING)
-  paidAt           DateTime?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  reference         String         @unique
+  amount            Int
+  status            PaymentStatus  @default(PENDING)
+  provider          String         @default("paystack")
+  providerReference String?
+  authorizationUrl  String?
+  accessCode        String?
+  gatewayResponse   Json?
+  paidAt            DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
   @@map("payments")
 }
@@ -279,4 +301,68 @@ model RefreshToken {
 
   @@index([userId, revoked])
   @@map("refresh_tokens")
+}
+
+model PlatformSetting {
+  id                  Int     @id @default(1)
+  commissionRatePct   Float   @default(8)
+  minimumPayoutAmount Int     @default(5000)
+
+  @@map("platform_settings")
+}
+
+model FarmerPayoutAccount {
+  id            String   @id @default(uuid())
+  farmerId      String   @unique
+  farmer        Farmer   @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  bankName      String
+  accountName   String
+  accountNumber String
+  bankCode      String?
+  isDefault     Boolean  @default(true)
+  isVerified    Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  payouts FarmerPayout[]
+
+  @@map("farmer_payout_accounts")
+}
+
+model FarmerEarning {
+  id                  String    @id @default(uuid())
+  farmerId            String
+  orderId             String    @unique
+  farmer              Farmer    @relation(fields: [farmerId], references: [id], onDelete: Restrict)
+  order               Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  grossAmount         Int
+  platformCommission  Int
+  netAmount           Int
+  currency            String    @default("NGN")
+  isPaidOut           Boolean   @default(false)
+  earnedAt            DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@unique([farmerId, orderId])
+  @@index([farmerId])
+  @@map("farmer_earnings")
+}
+
+model FarmerPayout {
+  id              String       @id @default(uuid())
+  farmerId        String
+  payoutAccountId String
+  farmer          Farmer       @relation(fields: [farmerId], references: [id], onDelete: Restrict)
+  payoutAccount   FarmerPayoutAccount @relation(fields: [payoutAccountId], references: [id], onDelete: Restrict)
+  amount          Int
+  status          PayoutStatus @default(PENDING)
+  reference       String       @unique
+  failureReason   String?
+  processedAt     DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([farmerId])
+  @@map("farmer_payouts")
 }

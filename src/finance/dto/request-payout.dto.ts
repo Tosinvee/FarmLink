@@ -1,0 +1,8 @@
+/* eslint-disable prettier/prettier */
+import { IsInt, Min } from 'class-validator';
+
+export class RequestPayoutDto {
+  @IsInt()
+  @Min(1000)
+  amount: number;
+}

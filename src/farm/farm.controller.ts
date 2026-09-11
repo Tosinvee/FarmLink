@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import {
   Body,
   Controller,
@@ -34,10 +33,7 @@ export class FarmController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  create(
-    @CurrentUser() user: SafeUser,
-    @Body() dto: CreateFarmDto,
-  ) {
+  create(@CurrentUser() user: SafeUser, @Body() dto: CreateFarmDto) {
     return this.farmService.create(user, dto);
   }
 
